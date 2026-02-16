@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../providers/notes_provider.dart';
 import '../providers/recipe_list_provider.dart';
 import '../widgets/recipe_card.dart';
 import 'calculator_screen.dart';
+import 'notes_screen.dart';
 import 'recipe_editor_screen.dart';
 
 class RecipeListScreen extends ConsumerWidget {
@@ -42,12 +44,24 @@ class RecipeListScreen extends ConsumerWidget {
             itemCount: recipes.length,
             itemBuilder: (context, index) {
               final recipe = recipes[index];
+              final notesAsync = ref.watch(notesProvider(recipe.id));
+              final noteCount = notesAsync.valueOrNull?.length ?? 0;
               return RecipeCard(
                 recipe: recipe,
+                noteCount: noteCount,
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (_) => CalculatorScreen(recipe: recipe),
+                  ),
+                ),
+                onNotesPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => NotesScreen(
+                      recipeId: recipe.id,
+                      recipeName: recipe.name,
+                    ),
                   ),
                 ),
                 onDelete: () => _confirmDelete(context, ref, recipe.id),
