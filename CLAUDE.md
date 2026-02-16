@@ -37,6 +37,17 @@ Imperative `Navigator.push` with `MaterialPageRoute`. No named routes or router 
 
 `RecipeCalculator.recalculate()` takes one changed ingredient and scales all others by `newValue / changedIngredient.baseAmount`. Division by zero and non-positive values are guarded.
 
+## Documentation
+
+プロジェクトのドキュメントは `docs/` に管理されている。コード変更時は関連するドキュメントも必ず更新すること。
+
+- `docs/requirements.md` — 業務要件（ユーザーストーリー、受け入れ条件、画面仕様、データモデル、バリデーションルール）
+  - 更新タイミング: 機能の追加・変更・削除、画面遷移の変更、データモデルの変更、バリデーションルールの変更
+- `docs/architecture.md` — アーキテクチャ設計（レイヤー構成、Provider設計、データフロー）
+  - 更新タイミング: レイヤー構成の変更、Provider の追加・変更、新しい設計パターンの導入、画面の追加・構成変更
+
+**ルール**: コードの変更が上記ドキュメントの記載内容に影響する場合、同じコミットまたは同じ作業単位の中でドキュメントも更新する。ドキュメントとコードの乖離を防ぐ。
+
 ## Conventions
 
 - All models use factory constructors (`.create()` with UUID generation, `.fromJson()`)
