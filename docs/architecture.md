@@ -66,6 +66,7 @@ recalculate(ingredients, changedId, newValue)
 
 - レシピ一覧: `recipes` キーに JSON 配列として保存
 - 調整記録: `notes_{recipeId}` キーにレシピごとに保存
+- **カスケード削除**: レシピ削除時、対応する `notes_{recipeId}` も自動削除
 
 **移行パス**: データ量が増えた場合、このクラスの内部実装を `sqflite` に差し替えるだけで対応可能（インターフェースは変わらない）。
 
@@ -77,13 +78,22 @@ Riverpod を採用。Provider の種類を用途に応じて使い分けてい�
 |----------|------|------|
 | `storageServiceProvider` | `Provider` | シングルトン。状態を持たない |
 | `recipeListProvider` | `AsyncNotifierProvider` | Storage からの非同期読み込み + CRUD |
-| `calculatorProvider` | `NotifierProvider` | 同期的なライブ計算（レシピは既に読み込み済み） |
+| `calculatorProvider` | `NotifierProvider.family.autoDispose` | レシピIDごとに独立した計算状態。画面を閉じると自動破棄 |
 | `notesProvider` | `AsyncNotifierProvider.family` | レシピIDごとの記録。family でキャッシュを分離 |
 
 ### AsyncNotifier vs Notifier の使い分け
 
 - **AsyncNotifier**: 初期データが非同期（Storage からの読み込み）→ loading/error/data の3状態を型で表現
 - **Notifier**: 初期データが同期的（既に手元にあるレシピから初期化）→ nullable で未初期化を表現
+
+### calculatorProvider の設計判断
+
+`calculatorProvider` は `family.autoDispose` を採用している。
+
+- **family**: レシピIDをキーにすることで、レシピごとに独立したキャッシュを持つ。画面遷移時に前のレシピの状態が残らない
+- **autoDispose**: 画面を閉じると自動的に状態が破棄される。メモリリークを防ぎ、次回開いたときは常に基準値（ratio = 1.0）から開始
+
+初期化は `initState` + `addPostFrameCallback` パターンを使用。これは Riverpod の制約（build 内で ref.read できない）を回避するための公式推奨パターン。
 
 ### family Provider のメリット
 
@@ -108,6 +118,15 @@ RecipeListScreen（一覧）
 | RecipeEditorScreen | `ConsumerStatefulWidget` | TextEditingController 群のライフサイクル管理が必要 |
 | CalculatorScreen | `ConsumerStatefulWidget` | initState で Calculator を初期化する必要がある |
 | NotesScreen | `ConsumerWidget` | Provider を watch するだけ |
+
+### CalculatorProvider の更新戦略
+
+`CalculatorNotifier` は2つの初期化系メソッドを持つ:
+
+- `initialize(MasterRecipe)`: 新規に計算を開始する場合。全材料を `currentAmount = baseAmount` で初期化
+- `updateRecipe(MasterRecipe)`: レシピ編集後の更新。現在の倍率を維持したまま、新しいレシピ構成に差し替える
+
+編集画面から戻った際は `updateRecipe()` を使用することで、ユーザーの計算状態（倍率）を失わずに最新のレシピデータを反映できる。
 
 ## データフロー: ライブ計算
 

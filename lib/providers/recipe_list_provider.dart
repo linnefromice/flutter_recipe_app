@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/master_recipe.dart';
 import '../services/storage_service.dart';
+import 'notes_provider.dart';
 
 final storageServiceProvider = Provider<StorageService>((ref) => StorageService());
 
@@ -38,7 +39,11 @@ class RecipeListNotifier extends AsyncNotifier<List<MasterRecipe>> {
     final storage = ref.read(storageServiceProvider);
     final current = state.valueOrNull ?? [];
     final updated = current.where((r) => r.id != id).toList();
-    await storage.saveRecipes(updated);
+    await Future.wait([
+      storage.saveRecipes(updated),
+      storage.deleteNotes(id),
+    ]);
+    ref.invalidate(notesProvider(id));
     state = AsyncData(updated);
   }
 }
