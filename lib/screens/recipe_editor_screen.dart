@@ -126,7 +126,7 @@ class _RecipeEditorScreenState extends ConsumerState<RecipeEditorScreen> {
       ));
     }
 
-    if (mounted) Navigator.pop(context);
+    if (mounted) Navigator.pop(context, true);
   }
 
   @override

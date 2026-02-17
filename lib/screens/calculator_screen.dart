@@ -5,6 +5,7 @@ import '../models/adjustment_note.dart';
 import '../models/master_recipe.dart';
 import '../providers/calculator_provider.dart';
 import '../providers/notes_provider.dart';
+import '../providers/recipe_list_provider.dart';
 import '../widgets/ingredient_input_tile.dart';
 import 'notes_screen.dart';
 import 'recipe_editor_screen.dart';
@@ -24,7 +25,7 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
     super.initState();
     // Schedule initialization after the widget tree is built
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(calculatorProvider.notifier).initialize(widget.recipe);
+      ref.read(calculatorProvider(widget.recipe.id).notifier).initialize(widget.recipe);
     });
   }
 
@@ -49,7 +50,7 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
           ),
           TextButton(
             onPressed: () {
-              final calcState = ref.read(calculatorProvider);
+              final calcState = ref.read(calculatorProvider(widget.recipe.id));
               if (calcState == null) return;
               final note = AdjustmentNote.create(
                 recipeId: widget.recipe.id,
@@ -75,7 +76,7 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final calcState = ref.watch(calculatorProvider);
+    final calcState = ref.watch(calculatorProvider(widget.recipe.id));
     final theme = Theme.of(context);
 
     if (calcState == null) {
@@ -92,13 +93,28 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
           IconButton(
             icon: const Icon(Icons.edit_outlined),
             tooltip: '編集',
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) =>
-                    RecipeEditorScreen(existingRecipe: widget.recipe),
-              ),
-            ),
+            onPressed: () async {
+              final result = await Navigator.push<bool>(
+                context,
+                MaterialPageRoute(
+                  builder: (_) =>
+                      RecipeEditorScreen(existingRecipe: widget.recipe),
+                ),
+              );
+              if (result == true && mounted) {
+                final recipeList =
+                    ref.read(recipeListProvider).valueOrNull;
+                final updatedRecipe = recipeList?.firstWhere(
+                  (r) => r.id == widget.recipe.id,
+                  orElse: () => widget.recipe,
+                );
+                if (updatedRecipe != null) {
+                  ref
+                      .read(calculatorProvider(widget.recipe.id).notifier)
+                      .updateRecipe(updatedRecipe);
+                }
+              }
+            },
           ),
           IconButton(
             icon: const Icon(Icons.history),
@@ -132,7 +148,7 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                   children: [
                     OutlinedButton.icon(
                       onPressed: () =>
-                          ref.read(calculatorProvider.notifier).reset(),
+                          ref.read(calculatorProvider(widget.recipe.id).notifier).reset(),
                       icon: const Icon(Icons.refresh, size: 18),
                       label: const Text('リセット'),
                     ),
@@ -184,7 +200,7 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                   ingredient: ingredient,
                   onChanged: (newValue) {
                     ref
-                        .read(calculatorProvider.notifier)
+                        .read(calculatorProvider(widget.recipe.id).notifier)
                         .updateIngredient(ingredient.id, newValue);
                   },
                 );

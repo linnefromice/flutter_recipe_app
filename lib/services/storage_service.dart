@@ -40,4 +40,9 @@ class StorageService {
     final jsonStr = jsonEncode(notes.map((n) => n.toJson()).toList());
     await prefs.setString('${_notesKey}_$recipeId', jsonStr);
   }
+
+  Future<void> deleteNotes(String recipeId) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('${_notesKey}_$recipeId');
+  }
 }

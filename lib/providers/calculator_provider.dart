@@ -27,20 +27,39 @@ class CalculatorState {
   }
 }
 
-final calculatorProvider =
-    NotifierProvider<CalculatorNotifier, CalculatorState?>(
-        CalculatorNotifier.new);
+final calculatorProvider = NotifierProvider.family
+    .autoDispose<CalculatorNotifier, CalculatorState?, String>(
+  CalculatorNotifier.new,
+);
 
-class CalculatorNotifier extends Notifier<CalculatorState?> {
+class CalculatorNotifier
+    extends AutoDisposeFamilyNotifier<CalculatorState?, String> {
   @override
-  CalculatorState? build() => null;
+  CalculatorState? build(String arg) => null;
 
   void initialize(MasterRecipe recipe) {
+    if (state != null) return;
     state = CalculatorState(
       originalRecipe: recipe,
       workingIngredients: recipe.ingredients
           .map((i) => i.copyWith(currentAmount: i.baseAmount))
           .toList(),
+    );
+  }
+
+  void updateRecipe(MasterRecipe newRecipe) {
+    final current = state;
+    if (current == null) {
+      initialize(newRecipe);
+      return;
+    }
+    final currentRatio = current.currentRatio;
+    state = CalculatorState(
+      originalRecipe: newRecipe,
+      workingIngredients: newRecipe.ingredients
+          .map((i) => i.copyWith(currentAmount: i.baseAmount * currentRatio))
+          .toList(),
+      currentRatio: currentRatio,
     );
   }
 
