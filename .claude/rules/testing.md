@@ -1,6 +1,6 @@
 ---
 description: "テスト要件とTDD規約"
-globs: "test/**/*.dart"
+globs: "{lib,test}/**/*.dart"
 ---
 
 # テスト要件

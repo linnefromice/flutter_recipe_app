@@ -36,7 +36,11 @@ void main() {
       // Arrange
       final ingredients = [...];
       // Act
-      final result = RecipeCalculator.recalculate(ingredients, changedIndex, newValue);
+      final result = RecipeCalculator.recalculate(
+        ingredients: ingredients,
+        changedIngredientId: changedId,
+        newValue: newValue,
+      );
       // Assert
       expect(result[0].currentAmount, equals(expectedValue));
     });
