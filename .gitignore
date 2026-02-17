@@ -4,3 +4,9 @@
 
 # Flutter build output
 build/
+
+# Dart tool cache (local paths, package resolution)
+.dart_tool/
+
+# Flutter plugin dependency cache
+.flutter-plugins-dependencies
