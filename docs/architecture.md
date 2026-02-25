@@ -151,3 +151,18 @@ RecipeListScreen（一覧）
 - **内部**: `double` の完全精度で保持
 - **表示**: 整数なら小数点なし、それ以外は `toStringAsFixed(1)`
 - **計算**: 常に `baseAmount * ratio` から算出（`currentAmount` の連鎖計算を避ける）
+
+## CI/CD パイプライン
+
+GitHub Actions で品質管理と配布を分離。
+
+### CI (`ci.yml`)
+- **トリガー**: `main` への push + Pull Request
+- `flutter analyze` → `flutter test`
+
+### App Distribution (`distribute.yml`)
+- **トリガー**: `main` への push のみ
+- Java 17 セットアップ → `flutter build apk --release` → Firebase App Distribution アップロード
+- 認証: Google Cloud Service Account（GitHub Secrets）
+- 配布先: `internal-testers` グループ（メール通知）
+- Firebase SDK はアプリに未組込。APK アップロードのみ利用
