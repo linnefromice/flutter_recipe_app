@@ -173,13 +173,54 @@ RecipeListScreen（一覧）
 - **表示**: 整数なら小数点なし、それ以外は `toStringAsFixed(1)`
 - **計算**: 常に `baseAmount * ratio` から算出（`currentAmount` の連鎖計算を避ける）
 
+## Golden Tests（ビジュアルリグレッション）
+
+`alchemist` パッケージを使用した Golden Testing を導入。PR ベースで UI の意図しない変更を検出する。
+
+### 仕組み
+
+- **CI goldens** (`test/golden/goldens/ci/`): Ahem フォント（Flutter 内蔵）で生成。**CI 環境（Ubuntu）で自動生成・コミット**されるため、ローカル（macOS）では生成しない
+- **Platform goldens** (`test/golden/goldens/<platform>/`): OS ネイティブフォントで生成。人間が読みやすいがOS依存のため `.gitignore` 対象
+
+### 設定
+
+- `test/flutter_test_config.dart`: `AlchemistConfig` でテーマ（`Colors.orange` + Material 3）と CI/Platform モードを制御
+- `bool.fromEnvironment('CI')`: `--dart-define=CI=true`（コンパイル時定義）で CI 判定。OS 環境変数ではない
+
+### テスト構成
+
+| ファイル | シナリオ |
+|---------|---------|
+| `recipe_list_screen_golden_test.dart` | 空リスト、レシピ3件表示 |
+| `calculator_screen_golden_test.dart` | 初期状態 (x1.00)、倍率変更後 (x1.50) |
+| `recipe_editor_screen_golden_test.dart` | 新規作成モード、編集モード |
+| `notes_screen_golden_test.dart` | メモなし、メモ2件表示 |
+
+### テストインフラ
+
+- `test/helpers/test_fixtures.dart`: 固定 ID・固定日時の決定論的テストデータ
+- `test/helpers/golden_test_helpers.dart`: `GoldenTestApp`（ProviderScope ラッパー）+ Fake Notifier 群
+- Provider オーバーライド: `recipeListOverride()`, `notesOverride()`, `calculatorOverride()`
+
+### コマンド
+
+```bash
+flutter test --update-goldens test/golden/   # ベースライン更新
+flutter test test/golden/                     # ローカル検証
+flutter test --tags golden --dart-define=CI=true  # CI 実行
+```
+
 ## CI/CD パイプライン
 
 GitHub Actions で品質管理と配布を分離。
 
 ### CI (`ci.yml`)
 - **トリガー**: `main` への push + Pull Request
-- `flutter analyze` → `flutter test`
+- **build ジョブ**: `flutter analyze` → `flutter test --exclude-tags golden`
+- **golden ジョブ**: CI golden ベースラインの管理 + リグレッション検証
+  - PR 時: Ubuntu 上で `--update-goldens` を実行し、変更があれば自動コミット → その後テスト検証
+  - push 時（main）: 既存の CI goldens に対してテスト検証のみ
+  - 失敗時: 差分画像を `golden-failures` アーティファクトとしてアップロード（7日間保持）
 
 ### App Distribution (`distribute.yml`)
 - **トリガー**: `main` への push のみ

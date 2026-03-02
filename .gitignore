@@ -10,3 +10,8 @@ build/
 
 # Flutter plugin dependency cache
 .flutter-plugins-dependencies
+
+# Platform-specific golden images (NOT committed)
+test/golden/goldens/macos/
+test/golden/goldens/linux/
+test/golden/goldens/windows/
