@@ -179,7 +179,7 @@ RecipeListScreen（一覧）
 
 ### 仕組み
 
-- **CI goldens** (`test/golden/goldens/ci/`): Ahem フォント（Flutter 内蔵）で生成。OS 間でバイト一致するためコミット対象
+- **CI goldens** (`test/golden/goldens/ci/`): Ahem フォント（Flutter 内蔵）で生成。**CI 環境（Ubuntu）で自動生成・コミット**されるため、ローカル（macOS）では生成しない
 - **Platform goldens** (`test/golden/goldens/<platform>/`): OS ネイティブフォントで生成。人間が読みやすいがOS依存のため `.gitignore` 対象
 
 ### 設定
@@ -217,7 +217,9 @@ GitHub Actions で品質管理と配布を分離。
 ### CI (`ci.yml`)
 - **トリガー**: `main` への push + Pull Request
 - **build ジョブ**: `flutter analyze` → `flutter test --exclude-tags golden`
-- **golden ジョブ**: `flutter test --tags golden --dart-define=CI=true`
+- **golden ジョブ**: CI golden ベースラインの管理 + リグレッション検証
+  - PR 時: Ubuntu 上で `--update-goldens` を実行し、変更があれば自動コミット → その後テスト検証
+  - push 時（main）: 既存の CI goldens に対してテスト検証のみ
   - 失敗時: 差分画像を `golden-failures` アーティファクトとしてアップロード（7日間保持）
 
 ### App Distribution (`distribute.yml`)

@@ -23,15 +23,34 @@ jobs:
 
   golden:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref }}
 
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
 
       - run: flutter pub get
+
+      # On PRs: regenerate CI goldens on Ubuntu and commit if changed
+      - name: Update CI golden baselines
+        if: github.event_name == 'pull_request'
+        run: flutter test --update-goldens --tags golden --dart-define=CI=true
+
+      - name: Commit updated CI goldens
+        if: github.event_name == 'pull_request'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add test/golden/goldens/ci/
+          git diff --staged --quiet || (git commit -m "ci: update CI golden baselines from Ubuntu environment" && git push)
+
+      # Verify golden tests pass
       - run: flutter test --tags golden --dart-define=CI=true
 
       - name: Upload golden failure diffs
