@@ -19,50 +19,56 @@ class NoteCard extends StatelessWidget {
     final dateFormat = DateFormat('yyyy/MM/dd HH:mm');
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      clipBehavior: Clip.antiAlias,
+      child: ExpansionTile(
+        title: Text(
+          note.title,
+          style: theme.textTheme.titleMedium
+              ?.copyWith(fontWeight: FontWeight.bold),
+        ),
+        subtitle: Row(
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'x${note.ratio.toStringAsFixed(2)}',
-                  style: theme.textTheme.titleMedium
-                      ?.copyWith(fontWeight: FontWeight.bold),
-                ),
-                Row(
-                  children: [
-                    Text(
-                      dateFormat.format(note.createdAt),
-                      style: theme.textTheme.bodySmall,
-                    ),
-                    const SizedBox(width: 4),
-                    IconButton(
-                      icon: const Icon(Icons.delete_outline, size: 20),
-                      onPressed: onDelete,
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    ),
-                  ],
-                ),
-              ],
+            Text(
+              'x${note.ratio.toStringAsFixed(2)}',
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: theme.colorScheme.primary,
+              ),
             ),
-            const SizedBox(height: 8),
-            ...note.adjustedIngredients.map((i) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 1),
-                  child: Text(
-                    '${i.name}: ${_formatAmount(i.currentAmount)}${i.unit}',
-                    style: theme.textTheme.bodyMedium,
-                  ),
-                )),
-            if (note.memo.isNotEmpty) ...[
-              const Divider(height: 16),
-              Text(note.memo, style: theme.textTheme.bodySmall),
-            ],
+            const SizedBox(width: 8),
+            Text(
+              dateFormat.format(note.createdAt),
+              style: theme.textTheme.bodySmall,
+            ),
           ],
         ),
+        trailing: IconButton(
+          icon: const Icon(Icons.delete_outline, size: 20),
+          onPressed: onDelete,
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(),
+        ),
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ...note.items.map((i) => Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 1),
+                      child: Text(
+                        '${i.name}: ${_formatAmount(i.baseAmount)} → ${_formatAmount(i.adjustedAmount)} ${i.unit}',
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                    )),
+                if (note.memo.isNotEmpty) ...[
+                  const Divider(height: 16),
+                  Text(note.memo, style: theme.textTheme.bodySmall),
+                ],
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

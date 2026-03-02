@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_recipe_app/models/adjustment_note.dart';
-import 'package:flutter_recipe_app/models/ingredient_item.dart';
+import 'package:flutter_recipe_app/models/note_item.dart';
 import 'package:flutter_recipe_app/services/storage_service.dart';
 
 void main() {
@@ -19,8 +19,8 @@ void main() {
         AdjustmentNote.create(
           recipeId: recipeId,
           recipeName: 'テストレシピ',
-          adjustedIngredients: [
-            IngredientItem.create(name: '小麦粉', baseAmount: 100),
+          items: const [
+            NoteItem(name: '小麦粉', baseAmount: 100, adjustedAmount: 150),
           ],
           ratio: 1.5,
           memo: 'テストメモ',
@@ -51,7 +51,7 @@ void main() {
         AdjustmentNote.create(
           recipeId: recipeIdA,
           recipeName: 'レシピA',
-          adjustedIngredients: [],
+          items: const [],
           ratio: 1.0,
         ),
       ];
@@ -59,7 +59,7 @@ void main() {
         AdjustmentNote.create(
           recipeId: recipeIdB,
           recipeName: 'レシピB',
-          adjustedIngredients: [],
+          items: const [],
           ratio: 2.0,
         ),
       ];

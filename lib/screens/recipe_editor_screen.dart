@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/ingredient_item.dart';
 import '../models/master_recipe.dart';
 import '../providers/recipe_list_provider.dart';
+import '../utils/amount_parser.dart';
 
 class RecipeEditorScreen extends ConsumerStatefulWidget {
   final MasterRecipe? existingRecipe;
@@ -79,7 +80,7 @@ class _RecipeEditorScreenState extends ConsumerState<RecipeEditorScreen> {
     final validIngredients = _ingredients
         .where((e) =>
             e.nameController.text.trim().isNotEmpty &&
-            (double.tryParse(e.amountController.text) ?? 0) > 0)
+            parseAmount(e.amountController.text) != null)
         .toList();
 
     if (validIngredients.length < 2) {
@@ -90,7 +91,7 @@ class _RecipeEditorScreenState extends ConsumerState<RecipeEditorScreen> {
     }
 
     final ingredients = validIngredients.map((e) {
-      final amount = double.parse(e.amountController.text);
+      final amount = parseAmount(e.amountController.text)!;
       if (e.id != null) {
         return IngredientItem(
           id: e.id!,
@@ -203,7 +204,7 @@ class _RecipeEditorScreenState extends ConsumerState<RecipeEditorScreen> {
                         keyboardType: const TextInputType.numberWithOptions(
                             decimal: true),
                         inputFormatters: [
-                          FilteringTextInputFormatter.allow(RegExp(r'[\d.]')),
+                          FilteringTextInputFormatter.allow(RegExp(r'[\d.,]')),
                         ],
                         decoration: const InputDecoration(
                           hintText: '量',

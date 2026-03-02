@@ -55,6 +55,13 @@ class RecipeListScreen extends ConsumerWidget {
                     builder: (_) => CalculatorScreen(recipe: recipe),
                   ),
                 ),
+                onEdit: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        RecipeEditorScreen(existingRecipe: recipe),
+                  ),
+                ),
                 onNotesPressed: () => Navigator.push(
                   context,
                   MaterialPageRoute(

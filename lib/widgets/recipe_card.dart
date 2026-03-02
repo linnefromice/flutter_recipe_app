@@ -6,6 +6,7 @@ class RecipeCard extends StatelessWidget {
   final MasterRecipe recipe;
   final int noteCount;
   final VoidCallback onTap;
+  final VoidCallback onEdit;
   final VoidCallback onNotesPressed;
   final VoidCallback onDelete;
 
@@ -14,6 +15,7 @@ class RecipeCard extends StatelessWidget {
     required this.recipe,
     this.noteCount = 0,
     required this.onTap,
+    required this.onEdit,
     required this.onNotesPressed,
     required this.onDelete,
   });
@@ -36,6 +38,11 @@ class RecipeCard extends StatelessWidget {
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            IconButton(
+              icon: const Icon(Icons.edit_outlined),
+              tooltip: '編集',
+              onPressed: onEdit,
+            ),
             if (noteCount > 0)
               IconButton(
                 icon: Badge(
