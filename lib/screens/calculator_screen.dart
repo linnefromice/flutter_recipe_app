@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/adjustment_note.dart';
 import '../models/master_recipe.dart';
+import '../models/note_item.dart';
 import '../providers/calculator_provider.dart';
 import '../providers/notes_provider.dart';
 import '../providers/recipe_list_provider.dart';
@@ -30,18 +31,32 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
   }
 
   void _showSaveNoteDialog() {
+    final titleController = TextEditingController();
     final memoController = TextEditingController();
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('調整記録を保存'),
-        content: TextField(
-          controller: memoController,
-          decoration: const InputDecoration(
-            hintText: 'メモ（任意）',
-            border: OutlineInputBorder(),
-          ),
-          maxLines: 3,
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: titleController,
+              decoration: const InputDecoration(
+                hintText: 'タイトル（空欄の場合「調整メモ」）',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: memoController,
+              decoration: const InputDecoration(
+                hintText: 'メモ（任意）',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 3,
+            ),
+          ],
         ),
         actions: [
           TextButton(
@@ -55,7 +70,10 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
               final note = AdjustmentNote.create(
                 recipeId: widget.recipe.id,
                 recipeName: widget.recipe.name,
-                adjustedIngredients: calcState.workingIngredients,
+                title: titleController.text.trim(),
+                items: calcState.workingIngredients
+                    .map(NoteItem.fromIngredientItem)
+                    .toList(),
                 ratio: calcState.currentRatio,
                 memo: memoController.text.trim(),
               );

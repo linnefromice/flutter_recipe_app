@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../models/ingredient_item.dart';
+import '../utils/amount_parser.dart';
 
 class IngredientInputTile extends StatefulWidget {
   final IngredientItem ingredient;
@@ -78,7 +79,7 @@ class _IngredientInputTileState extends State<IngredientInputTile> {
               keyboardType:
                   const TextInputType.numberWithOptions(decimal: true),
               inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'[\d.]')),
+                FilteringTextInputFormatter.allow(RegExp(r'[\d.,]')),
               ],
               textAlign: TextAlign.right,
               decoration: InputDecoration(
@@ -89,8 +90,8 @@ class _IngredientInputTileState extends State<IngredientInputTile> {
                 border: const OutlineInputBorder(),
               ),
               onChanged: (value) {
-                final parsed = double.tryParse(value);
-                if (parsed != null && parsed > 0) {
+                final parsed = parseAmount(value);
+                if (parsed != null) {
                   widget.onChanged(parsed);
                 }
               },
