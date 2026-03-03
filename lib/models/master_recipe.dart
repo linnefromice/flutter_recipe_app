@@ -8,6 +8,8 @@ class MasterRecipe {
   final String description;
   final List<IngredientItem> ingredients;
   final DateTime createdAt;
+  final int servings;
+  final bool isFavorite;
 
   const MasterRecipe({
     required this.id,
@@ -15,12 +17,15 @@ class MasterRecipe {
     this.description = '',
     required this.ingredients,
     required this.createdAt,
+    this.servings = 1,
+    this.isFavorite = false,
   });
 
   factory MasterRecipe.create({
     required String name,
     String description = '',
     required List<IngredientItem> ingredients,
+    int servings = 1,
   }) {
     return MasterRecipe(
       id: const Uuid().v4(),
@@ -28,6 +33,7 @@ class MasterRecipe {
       description: description,
       ingredients: ingredients,
       createdAt: DateTime.now(),
+      servings: servings,
     );
   }
 
@@ -35,6 +41,8 @@ class MasterRecipe {
     String? name,
     String? description,
     List<IngredientItem>? ingredients,
+    int? servings,
+    bool? isFavorite,
   }) {
     return MasterRecipe(
       id: id,
@@ -42,6 +50,8 @@ class MasterRecipe {
       description: description ?? this.description,
       ingredients: ingredients ?? this.ingredients,
       createdAt: createdAt,
+      servings: servings ?? this.servings,
+      isFavorite: isFavorite ?? this.isFavorite,
     );
   }
 
@@ -51,6 +61,8 @@ class MasterRecipe {
         'description': description,
         'ingredients': ingredients.map((i) => i.toJson()).toList(),
         'createdAt': createdAt.toIso8601String(),
+        'servings': servings,
+        'isFavorite': isFavorite,
       };
 
   factory MasterRecipe.fromJson(Map<String, dynamic> json) {
@@ -62,6 +74,8 @@ class MasterRecipe {
           .map((i) => IngredientItem.fromJson(i as Map<String, dynamic>))
           .toList(),
       createdAt: DateTime.parse(json['createdAt'] as String),
+      servings: json['servings'] as int? ?? 1,
+      isFavorite: json['isFavorite'] as bool? ?? false,
     );
   }
 }

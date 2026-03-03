@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/adjustment_note.dart';
@@ -86,6 +87,106 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
               );
             },
             child: const Text('保存'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static const _presetRatios = [0.5, 1.0, 1.5, 2.0, 3.0];
+
+  Widget _buildPresetChips(CalculatorState calcState, ThemeData theme) {
+    final notifier = ref.read(calculatorProvider(widget.recipe.id).notifier);
+    final isCustom = !_presetRatios.contains(calcState.currentRatio);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: Wrap(
+        spacing: 8,
+        children: [
+          ..._presetRatios.map((ratio) => ChoiceChip(
+                label: Text('x${ratio == ratio.truncate() ? ratio.truncate().toString() : ratio.toString()}'),
+                selected: calcState.currentRatio == ratio,
+                onSelected: (_) => notifier.applyRatio(ratio),
+                visualDensity: VisualDensity.compact,
+              )),
+          ChoiceChip(
+            label: const Text('カスタム'),
+            selected: isCustom,
+            onSelected: (_) => _showCustomRatioDialog(),
+            visualDensity: VisualDensity.compact,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildServingsBar(CalculatorState calcState, ThemeData theme) {
+    final notifier = ref.read(calculatorProvider(widget.recipe.id).notifier);
+    final baseServings = calcState.originalRecipe.servings;
+    final currentServings = calcState.targetServings ?? baseServings;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: Row(
+        children: [
+          Text('人数: $baseServings人前 →',
+              style: theme.textTheme.bodyMedium),
+          const SizedBox(width: 8),
+          IconButton(
+            icon: const Icon(Icons.remove_circle_outline, size: 20),
+            onPressed: currentServings > 1
+                ? () => notifier.applyServings(currentServings - 1)
+                : null,
+            visualDensity: VisualDensity.compact,
+          ),
+          Text('$currentServings人前',
+              style: theme.textTheme.titleMedium
+                  ?.copyWith(fontWeight: FontWeight.bold)),
+          IconButton(
+            icon: const Icon(Icons.add_circle_outline, size: 20),
+            onPressed: () => notifier.applyServings(currentServings + 1),
+            visualDensity: VisualDensity.compact,
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showCustomRatioDialog() {
+    final controller = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('カスタム倍率'),
+        content: TextField(
+          controller: controller,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(RegExp(r'[\d.]')),
+          ],
+          decoration: const InputDecoration(
+            hintText: '倍率を入力（例: 1.25）',
+            border: OutlineInputBorder(),
+          ),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('キャンセル'),
+          ),
+          TextButton(
+            onPressed: () {
+              final value = double.tryParse(controller.text);
+              if (value != null && value > 0) {
+                ref
+                    .read(calculatorProvider(widget.recipe.id).notifier)
+                    .applyRatio(value);
+                Navigator.pop(ctx);
+              }
+            },
+            child: const Text('適用'),
           ),
         ],
       ),
@@ -181,6 +282,9 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
               ],
             ),
           ),
+          _buildPresetChips(calcState, theme),
+          if (calcState.originalRecipe.servings > 1)
+            _buildServingsBar(calcState, theme),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(

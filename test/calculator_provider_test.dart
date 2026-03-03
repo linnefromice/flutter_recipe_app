@@ -176,6 +176,131 @@ void main() {
     });
   });
 
+  group('CalculatorNotifier.applyRatio', () {
+    test('全材料が指定倍率でスケールされる', () {
+      final notifier =
+          container.read(calculatorProvider(testRecipe.id).notifier);
+      notifier.initialize(testRecipe);
+
+      notifier.applyRatio(2.0);
+      final state = container.read(calculatorProvider(testRecipe.id))!;
+
+      expect(state.currentRatio, 2.0);
+      expect(state.workingIngredients[0].currentAmount, 200.0);
+      expect(state.workingIngredients[1].currentAmount, 100.0);
+      expect(state.workingIngredients[2].currentAmount, 60.0);
+    });
+
+    test('未初期化で applyRatio を呼んでも例外が発生しない', () {
+      final notifier =
+          container.read(calculatorProvider(testRecipe.id).notifier);
+      notifier.applyRatio(2.0);
+
+      final state = container.read(calculatorProvider(testRecipe.id));
+      expect(state, isNull);
+    });
+  });
+
+  group('CalculatorNotifier.applyServings', () {
+    test('人数に基づいて全材料がスケールされる', () {
+      final servingsRecipe = MasterRecipe(
+        id: 'servings-recipe',
+        name: 'テスト',
+        ingredients: [
+          IngredientItem.create(name: '小麦粉', baseAmount: 100),
+          IngredientItem.create(name: '砂糖', baseAmount: 50),
+        ],
+        createdAt: DateTime.now(),
+        servings: 4,
+      );
+      container
+          .read(calculatorProvider(servingsRecipe.id).notifier)
+          .initialize(servingsRecipe);
+
+      container
+          .read(calculatorProvider(servingsRecipe.id).notifier)
+          .applyServings(6);
+
+      final state = container.read(calculatorProvider(servingsRecipe.id))!;
+      expect(state.currentRatio, 1.5);
+      expect(state.targetServings, 6);
+      expect(state.workingIngredients[0].currentAmount, 150.0);
+      expect(state.workingIngredients[1].currentAmount, 75.0);
+    });
+
+    test('applyRatio で targetServings がクリアされる', () {
+      final servingsRecipe = MasterRecipe(
+        id: 'servings-recipe-2',
+        name: 'テスト',
+        ingredients: [
+          IngredientItem.create(name: '小麦粉', baseAmount: 100),
+        ],
+        createdAt: DateTime.now(),
+        servings: 4,
+      );
+      final notifier = container
+          .read(calculatorProvider(servingsRecipe.id).notifier);
+      notifier.initialize(servingsRecipe);
+      notifier.applyServings(8);
+      expect(
+        container.read(calculatorProvider(servingsRecipe.id))!.targetServings,
+        8,
+      );
+
+      notifier.applyRatio(1.5);
+      expect(
+        container.read(calculatorProvider(servingsRecipe.id))!.targetServings,
+        isNull,
+      );
+    });
+
+    test('updateIngredient で targetServings がクリアされる', () {
+      final servingsRecipe = MasterRecipe(
+        id: 'servings-recipe-3',
+        name: 'テスト',
+        ingredients: [
+          IngredientItem.create(name: '小麦粉', baseAmount: 100),
+          IngredientItem.create(name: '砂糖', baseAmount: 50),
+        ],
+        createdAt: DateTime.now(),
+        servings: 4,
+      );
+      final notifier = container
+          .read(calculatorProvider(servingsRecipe.id).notifier);
+      notifier.initialize(servingsRecipe);
+      notifier.applyServings(6);
+
+      notifier.updateIngredient(
+        servingsRecipe.ingredients[0].id, 200,
+      );
+
+      final state = container.read(calculatorProvider(servingsRecipe.id))!;
+      expect(state.targetServings, isNull);
+    });
+
+    test('reset で targetServings がクリアされる', () {
+      final servingsRecipe = MasterRecipe(
+        id: 'servings-recipe-4',
+        name: 'テスト',
+        ingredients: [
+          IngredientItem.create(name: '小麦粉', baseAmount: 100),
+        ],
+        createdAt: DateTime.now(),
+        servings: 4,
+      );
+      final notifier = container
+          .read(calculatorProvider(servingsRecipe.id).notifier);
+      notifier.initialize(servingsRecipe);
+      notifier.applyServings(8);
+
+      notifier.reset();
+
+      final state = container.read(calculatorProvider(servingsRecipe.id))!;
+      expect(state.targetServings, isNull);
+      expect(state.currentRatio, 1.0);
+    });
+  });
+
   group('CalculatorNotifier.reset', () {
     test('全材料が基準値に戻り、倍率が1.0になる', () {
       final notifier =

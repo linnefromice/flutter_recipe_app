@@ -8,21 +8,27 @@ class CalculatorState {
   final MasterRecipe originalRecipe;
   final List<IngredientItem> workingIngredients;
   final double currentRatio;
+  final int? targetServings;
 
   const CalculatorState({
     required this.originalRecipe,
     required this.workingIngredients,
     this.currentRatio = 1.0,
+    this.targetServings,
   });
 
   CalculatorState copyWith({
     List<IngredientItem>? workingIngredients,
     double? currentRatio,
+    int? targetServings,
+    bool clearTargetServings = false,
   }) {
     return CalculatorState(
       originalRecipe: originalRecipe,
       workingIngredients: workingIngredients ?? this.workingIngredients,
       currentRatio: currentRatio ?? this.currentRatio,
+      targetServings:
+          clearTargetServings ? null : (targetServings ?? this.targetServings),
     );
   }
 }
@@ -81,6 +87,38 @@ class CalculatorNotifier
     state = current.copyWith(
       workingIngredients: recalculated,
       currentRatio: ratio,
+      clearTargetServings: true,
+    );
+  }
+
+  void applyRatio(double ratio) {
+    final current = state;
+    if (current == null) return;
+    final scaled = RecipeCalculator.scaleAll(
+      ingredients: current.workingIngredients,
+      ratio: ratio,
+    );
+    state = current.copyWith(
+      workingIngredients: scaled,
+      currentRatio: ratio,
+      clearTargetServings: true,
+    );
+  }
+
+  void applyServings(int targetServings) {
+    final current = state;
+    if (current == null) return;
+    final baseServings = current.originalRecipe.servings;
+    if (baseServings <= 0) return;
+    final ratio = targetServings / baseServings;
+    final scaled = RecipeCalculator.scaleAll(
+      ingredients: current.workingIngredients,
+      ratio: ratio,
+    );
+    state = current.copyWith(
+      workingIngredients: scaled,
+      currentRatio: ratio,
+      targetServings: targetServings,
     );
   }
 
@@ -91,6 +129,7 @@ class CalculatorNotifier
       workingIngredients:
           RecipeCalculator.resetToBase(current.workingIngredients),
       currentRatio: 1.0,
+      clearTargetServings: true,
     );
   }
 }

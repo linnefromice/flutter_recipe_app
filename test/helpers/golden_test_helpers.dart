@@ -6,6 +6,7 @@ import 'package:flutter_recipe_app/models/adjustment_note.dart';
 import 'package:flutter_recipe_app/models/master_recipe.dart';
 import 'package:flutter_recipe_app/providers/calculator_provider.dart';
 import 'package:flutter_recipe_app/providers/notes_provider.dart';
+import 'package:flutter_recipe_app/providers/recipe_filter_provider.dart';
 import 'package:flutter_recipe_app/providers/recipe_list_provider.dart';
 
 /// Wraps a widget with [ProviderScope] for golden tests.
@@ -72,6 +73,15 @@ class _FakeCalculatorNotifier extends CalculatorNotifier {
   }
 }
 
+class _FakeFilterNotifier extends RecipeFilterNotifier {
+  final RecipeFilterState _initialState;
+
+  _FakeFilterNotifier(this._initialState);
+
+  @override
+  RecipeFilterState build() => _initialState;
+}
+
 // --- Provider Override Helpers ---
 
 Override recipeListOverride(List<MasterRecipe> recipes) {
@@ -83,6 +93,16 @@ Override recipeListOverride(List<MasterRecipe> recipes) {
 /// Pass a map of recipeId → notes list.
 Override notesOverrides(Map<String, List<AdjustmentNote>> dataMap) {
   return notesProvider.overrideWith(() => _FakeNotesNotifier(dataMap));
+}
+
+/// Overrides [recipeFilterProvider] with a specific state.
+Override recipeFilterOverride({
+  String searchQuery = '',
+  RecipeSortOrder sortOrder = RecipeSortOrder.createdNewest,
+}) {
+  return recipeFilterProvider.overrideWith(() => _FakeFilterNotifier(
+        RecipeFilterState(searchQuery: searchQuery, sortOrder: sortOrder),
+      ));
 }
 
 /// Overrides [calculatorProvider] for all family keys.

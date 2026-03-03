@@ -35,6 +35,17 @@ class RecipeCalculator {
     return ref.currentAmount / ref.baseAmount;
   }
 
+  /// Scales all ingredients by a given ratio relative to their base amounts.
+  static List<IngredientItem> scaleAll({
+    required List<IngredientItem> ingredients,
+    required double ratio,
+  }) {
+    if (ratio <= 0) return ingredients;
+    return ingredients
+        .map((i) => i.copyWith(currentAmount: i.baseAmount * ratio))
+        .toList();
+  }
+
   /// Resets all ingredients to their base amounts.
   static List<IngredientItem> resetToBase(List<IngredientItem> ingredients) {
     return ingredients
