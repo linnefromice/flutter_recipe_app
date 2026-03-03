@@ -66,6 +66,69 @@ void main() {
     });
   });
 
+  group('RecipeCalculator.scaleAll', () {
+    test('scales all ingredients by ratio', () {
+      final result = RecipeCalculator.scaleAll(
+        ingredients: ingredients,
+        ratio: 2.0,
+      );
+
+      expect(result[0].currentAmount, 200.0);
+      expect(result[1].currentAmount, 100.0);
+      expect(result[2].currentAmount, 60.0);
+    });
+
+    test('scales down with ratio < 1', () {
+      final result = RecipeCalculator.scaleAll(
+        ingredients: ingredients,
+        ratio: 0.5,
+      );
+
+      expect(result[0].currentAmount, 50.0);
+      expect(result[1].currentAmount, 25.0);
+      expect(result[2].currentAmount, 15.0);
+    });
+
+    test('returns original if ratio is 0', () {
+      final result = RecipeCalculator.scaleAll(
+        ingredients: ingredients,
+        ratio: 0,
+      );
+
+      expect(result[0].currentAmount, 100.0);
+      expect(result[1].currentAmount, 50.0);
+    });
+
+    test('returns original if ratio is negative', () {
+      final result = RecipeCalculator.scaleAll(
+        ingredients: ingredients,
+        ratio: -1.5,
+      );
+
+      expect(result[0].currentAmount, 100.0);
+    });
+
+    test('handles empty list', () {
+      final result = RecipeCalculator.scaleAll(
+        ingredients: [],
+        ratio: 2.0,
+      );
+
+      expect(result, isEmpty);
+    });
+
+    test('ratio 1.0 keeps base amounts', () {
+      final result = RecipeCalculator.scaleAll(
+        ingredients: ingredients,
+        ratio: 1.0,
+      );
+
+      for (final i in result) {
+        expect(i.currentAmount, i.baseAmount);
+      }
+    });
+  });
+
   group('RecipeCalculator.getCurrentRatio', () {
     test('returns correct ratio', () {
       final scaled = RecipeCalculator.recalculate(

@@ -104,6 +104,8 @@ class TestFixtures {
     description: 'サクサクバタークッキー',
     ingredients: [flour, sugar, butter, egg],
     createdAt: _fixedDate,
+    servings: 4,
+    isFavorite: true,
   );
 
   static final pancakeRecipe = MasterRecipe(
@@ -112,6 +114,7 @@ class TestFixtures {
     description: 'ふわふわパンケーキ',
     ingredients: [flour, sugar, egg, milk],
     createdAt: _fixedDate.add(const Duration(hours: 1)),
+    servings: 2,
   );
 
   static final chocolateCakeRecipe = MasterRecipe(
@@ -120,6 +123,7 @@ class TestFixtures {
     description: '濃厚チョコレートケーキ',
     ingredients: [flour, sugar, butter, egg, milk],
     createdAt: _fixedDate.add(const Duration(hours: 2)),
+    servings: 6,
   );
 
   static final threeRecipes = [

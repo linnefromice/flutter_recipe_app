@@ -20,6 +20,7 @@ class _RecipeEditorScreenState extends ConsumerState<RecipeEditorScreen> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
   late TextEditingController _descriptionController;
+  late TextEditingController _servingsController;
   final List<_IngredientEntry> _ingredients = [];
 
   bool get _isEditing => widget.existingRecipe != null;
@@ -31,6 +32,8 @@ class _RecipeEditorScreenState extends ConsumerState<RecipeEditorScreen> {
     _nameController = TextEditingController(text: recipe?.name ?? '');
     _descriptionController =
         TextEditingController(text: recipe?.description ?? '');
+    _servingsController = TextEditingController(
+        text: (recipe?.servings ?? 1).toString());
     if (recipe != null) {
       for (final i in recipe.ingredients) {
         _ingredients.add(_IngredientEntry(
@@ -51,6 +54,7 @@ class _RecipeEditorScreenState extends ConsumerState<RecipeEditorScreen> {
   void dispose() {
     _nameController.dispose();
     _descriptionController.dispose();
+    _servingsController.dispose();
     for (final entry in _ingredients) {
       entry.dispose();
     }
@@ -112,18 +116,23 @@ class _RecipeEditorScreenState extends ConsumerState<RecipeEditorScreen> {
       );
     }).toList();
 
+    final servings =
+        int.tryParse(_servingsController.text.trim()) ?? 1;
+
     final notifier = ref.read(recipeListProvider.notifier);
     if (_isEditing) {
       await notifier.updateRecipe(widget.existingRecipe!.copyWith(
         name: _nameController.text.trim(),
         description: _descriptionController.text.trim(),
         ingredients: ingredients,
+        servings: servings,
       ));
     } else {
       await notifier.addRecipe(MasterRecipe.create(
         name: _nameController.text.trim(),
         description: _descriptionController.text.trim(),
         ingredients: ingredients,
+        servings: servings,
       ));
     }
 
@@ -164,6 +173,32 @@ class _RecipeEditorScreenState extends ConsumerState<RecipeEditorScreen> {
                 border: OutlineInputBorder(),
               ),
               maxLines: 2,
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                SizedBox(
+                  width: 100,
+                  child: TextFormField(
+                    controller: _servingsController,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                    ],
+                    decoration: const InputDecoration(
+                      labelText: '人数',
+                      suffixText: '人前',
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (v) {
+                      if (v == null || v.trim().isEmpty) return null;
+                      final n = int.tryParse(v.trim());
+                      if (n == null || n < 1) return '1以上';
+                      return null;
+                    },
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 20),
             Row(

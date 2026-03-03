@@ -9,6 +9,8 @@ class RecipeCard extends StatelessWidget {
   final VoidCallback onEdit;
   final VoidCallback onNotesPressed;
   final VoidCallback onDelete;
+  final VoidCallback? onToggleFavorite;
+  final VoidCallback? onDuplicate;
 
   const RecipeCard({
     super.key,
@@ -18,6 +20,8 @@ class RecipeCard extends StatelessWidget {
     required this.onEdit,
     required this.onNotesPressed,
     required this.onDelete,
+    this.onToggleFavorite,
+    this.onDuplicate,
   });
 
   @override
@@ -26,6 +30,14 @@ class RecipeCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: ListTile(
+        leading: IconButton(
+          icon: Icon(
+            recipe.isFavorite ? Icons.star : Icons.star_border,
+            color: recipe.isFavorite ? Colors.amber : Colors.grey,
+          ),
+          tooltip: recipe.isFavorite ? 'お気に入り解除' : 'お気に入り',
+          onPressed: onToggleFavorite,
+        ),
         title: Text(recipe.name,
             style: const TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Text(
@@ -38,11 +50,6 @@ class RecipeCard extends StatelessWidget {
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            IconButton(
-              icon: const Icon(Icons.edit_outlined),
-              tooltip: '編集',
-              onPressed: onEdit,
-            ),
             if (noteCount > 0)
               IconButton(
                 icon: Badge(
@@ -59,9 +66,46 @@ class RecipeCard extends StatelessWidget {
                 tooltip: '記録なし',
                 onPressed: onNotesPressed,
               ),
-            IconButton(
-              icon: const Icon(Icons.delete_outline),
-              onPressed: onDelete,
+            PopupMenuButton<String>(
+              onSelected: (value) {
+                switch (value) {
+                  case 'edit':
+                    onEdit();
+                  case 'duplicate':
+                    onDuplicate?.call();
+                  case 'delete':
+                    onDelete();
+                }
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem(
+                  value: 'edit',
+                  child: ListTile(
+                    leading: Icon(Icons.edit_outlined),
+                    title: Text('編集'),
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'duplicate',
+                  child: ListTile(
+                    leading: Icon(Icons.copy),
+                    title: Text('複製'),
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'delete',
+                  child: ListTile(
+                    leading: Icon(Icons.delete_outline, color: Colors.red),
+                    title: Text('削除', style: TextStyle(color: Colors.red)),
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
